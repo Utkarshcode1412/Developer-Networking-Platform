@@ -2,6 +2,8 @@ const express = require("express");
 const { validateSignupData } = require("../utils/validation.js");
 const bcrypt = require("bcrypt");
 const User = require("../models/user.js");
+const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail.js");
 
 const authRouter = express.Router();
 
@@ -61,6 +63,58 @@ authRouter.post("/logout", async(req, res) => {
 
     res.send("Logged out successfully");
 })
+
+authRouter.post("/forgot-password", async(req, res) => {
+    try {
+        const { emailId } = req.body;
+        const user = await User.findOne({ emailId });
+
+        if(!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
+
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = Date.now() + 5 * 60 * 1000;
+
+        await user.save();
+
+        const resetLink =
+            `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+
+         await sendEmail(
+            user.emailId,
+            "Reset Password",
+            `
+            <h2>Password Reset</h2>
+            <p>Click below link:</p>
+
+            <a href="${resetLink}">
+                Reset Password
+            </a>
+
+            <p>Valid for 15 minutes.</p>
+            `
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Reset link sent successfully"
+        }); 
+
+    } catch (error) {
+        res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+});
+
+
 
 
 module.exports = authRouter;
