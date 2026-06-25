@@ -4,6 +4,7 @@ const bcrypt = require("bcrypt");
 const User = require("../models/user.js");
 const crypto = require("crypto");
 const sendEmail = require("../utils/sendEmail.js");
+const MailMessage = require("nodemailer/lib/mailer/mail-message.js");
 
 const authRouter = express.Router();
 
@@ -114,6 +115,54 @@ authRouter.post("/forgot-password", async(req, res) => {
     }
 });
 
+authRouter.post("/reset-password/:token", async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { newPassword } = req.body;
+
+        const user = await User.findOne({resetPasswordToken: token, resetPasswordExpires: {
+                $gt: Date.now()
+            }
+        });
+
+        if(!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid or expired token"
+
+            });
+        }
+
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must contain at least 8 characters"
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        user.password = hashedPassword;
+
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Password reset succesful"
+        });
+
+
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        });
+    }
+})
 
 
 
