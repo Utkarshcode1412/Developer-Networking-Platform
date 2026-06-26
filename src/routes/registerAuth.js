@@ -80,7 +80,7 @@ authRouter.post("/forgot-password", async(req, res) => {
         const resetToken = crypto.randomBytes(32).toString("hex");
 
         user.resetPasswordToken = resetToken;
-        user.resetPasswordExpires = Date.now() + 5 * 60 * 1000;
+        user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
 
         await user.save();
 
