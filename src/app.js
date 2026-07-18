@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const app = express();
 const cors = require("cors")
 require("dotenv").config();
+const http = require("http");
 
 app.use(cors(
     {
@@ -20,6 +21,7 @@ const profileRouter = require("./routes/profile.js");
 const requestRouter = require("./routes/request.js");
 const userRouter = require("./routes/users.js");
 const { configDotenv } = require("dotenv");
+const initializeSocket = require("./utils/socket.js");
 
 
 app.use("/", authRouter);
@@ -28,11 +30,14 @@ app.use("/", requestRouter);
 app.use("/", userRouter);
 
 
+const server = http.createServer(app);
+initializeSocket(server);
+
 
 connectDB()
     .then(() => {
         console.log("Database connected successfully");
-        app.listen(process.env.PORT, () => {
+        server.listen(process.env.PORT, () => {
             console.log("server started");
         })
     })
