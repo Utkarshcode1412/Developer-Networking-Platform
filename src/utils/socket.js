@@ -24,9 +24,9 @@ const initializeSocket = (server) => {
             socket.join(roomId);
         });
 
-        socket.on("sendMessage", () => {
+        socket.on("sendMessage", ({firstName, userId, targetUserId, text}) => {
             const roomId = getSecretRoomId(userId, targetUserId);
-            io.on(roomId).emit("messageReceived", {firstName, text});
+            io.to(roomId).emit("messageReceived", {firstName, text});
         });
 
 
