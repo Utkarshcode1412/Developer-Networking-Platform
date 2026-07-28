@@ -12,7 +12,7 @@ chatRouter.get('/chat/:targetUserId', userAuth, async(req, res) => {
         let chat = await Chat.findOne({
             participants: {$all: [userId, targetUserId]},
         }).populate({
-            path: messages.senderId,
+            path: "messages.senderId",
             select: "firstName lastName"
         });
 
@@ -22,13 +22,16 @@ chatRouter.get('/chat/:targetUserId', userAuth, async(req, res) => {
             messages: [],
         });
 
-        await chat.save();
+            await chat.save();
         }
 
         res.json(chat);
 
     } catch (error) {
-        console.log(error);
+        console.error(error);
+        res.status(500).json({
+        message: "Something went wrong",
+        });
     }
 });
 

@@ -35,7 +35,7 @@ const server = http.createServer(app);
 initializeSocket(server);
 
 
-const BASE_PORT = parseInt(process.env.PORT, 10) || 8001;
+const BASE_PORT = parseInt(process.env.PORT, 10) || 7777;
 const MAX_FALLBACKS = 5;
 
 const startServer = (port, fallbackCount = 0) => {
